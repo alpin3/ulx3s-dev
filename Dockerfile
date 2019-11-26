@@ -13,6 +13,11 @@ COPY root /
 RUN apk add -f --allow-untrusted $ULX3SBASEDIR/apk/libgnat-8.3.0-r0.apk && \
  rm -f /var/cache/apk/* && \
  cd $ULX3SBASEDIR && \
+ git clone https://github.com/ldoolitt/vhd2vl.git && \
+ cd vhd2vl/src && \
+ make WARNS="-static" && \
+ install -m 755 -s vhd2vl /usr/local/bin && \
+ cd $ULX3SBASEDIR && \
  git clone --recursive https://github.com/SymbiFlow/prjtrellis && \
  cd prjtrellis/libtrellis/ && \
  cmake -DCMAKE_INSTALL_PREFIX=/usr && \
