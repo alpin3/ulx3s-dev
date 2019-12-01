@@ -1,4 +1,4 @@
-FROM alpin3/ulx3s-core
+FROM alpin3/ulx3s-core-dev
 MAINTAINER kost - https://github.com/kost
 
 ENV ULX3SBASEDIR=/opt GHDLSRC=/opt/ghdl-git GHDLOPT=/opt/ghdl
@@ -59,10 +59,15 @@ RUN apk add -f --allow-untrusted $ULX3SBASEDIR/apk/libgnat-8.3.0-r0.apk && \
  make -j$(nproc) && \
  make install && \
  strip /usr/local/bin/yosys && \
+ cd $ULX3SBASEDIR && \
+ pip install -e git+https://github.com/mmicko/apio@develop#egg=apio && \
+ apio install scons && \
+ apio install yosys && \
+ apio install ecp5 && \
  echo "Success [build]"
 
 #VOLUME ["/fpga"]
-WORKDIR /opt
+#WORKDIR /opt
 
 
 
