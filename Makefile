@@ -24,11 +24,24 @@ gittag:
 	git push --tags origin master
 
 bins:
+	mkdir -p dist
+	mkdir -p $(NAME)-$(VERSION)-$(ARCH)
 	docker run -it --name $(NAME)-$(VERSION) $(IMAGE) true
-	docker cp $(NAME)-$(VERSION):/usr/local/bin $(NAME)-$(VERSION)-$(ARCH)
-	docker cp $(NAME)-$(VERSION):/opt/ghdl $(NAME)-ghdl-$(VERSION)-$(ARCH)
-	tar -cvz --owner root --group root -f $(NAME)-$(VERSION)-$(ARCH).tar.gz $(NAME)-$(VERSION)-$(ARCH)
-	tar -cvz --owner root --group root -f $(NAME)-ghdl-$(VERSION)-$(ARCH).tar.gz $(NAME)-ghdl-$(VERSION)-$(ARCH)
+	docker cp $(NAME)-$(VERSION):/usr/local/bin $(NAME)-$(VERSION)-$(ARCH)/
+	docker cp $(NAME)-$(VERSION):/opt/ghdl $(NAME)-$(VERSION)-$(ARCH)/
+	docker cp $(NAME)-$(VERSION):/usr/local/share $(NAME)-$(VERSION)-$(ARCH)/
+	tar -cvz --owner root --group root -f dist/$(NAME)-$(VERSION)-$(ARCH).tar.gz $(NAME)-$(VERSION)-$(ARCH)
 	docker rm $(NAME)-$(VERSION)
-	rm -rf $(NAME)-$(VERSION)-$(ARCH) $(NAME)-ghdl-$(VERSION)-$(ARCH)
+	rm -rf $(NAME)-$(VERSION)-$(ARCH)
+
+cpbins:
+	docker run -it --name $(NAME)-$(VERSION) $(IMAGE):v$(VERSION) true
+	docker cp $(NAME)-$(VERSION):/usr/local/bin $(NAME)-$(VERSION)-$(ARCH)
+	docker rm $(NAME)-$(VERSION)
+
+clean:
+	rm -rf dist work
+
+draft:
+	ghr -draft v$(VERSION) dist/
 
