@@ -1,4 +1,6 @@
 [![](https://images.microbadger.com/badges/image/alpin3/ulx3s-dev.svg)](https://microbadger.com/images/alpin3/ulx3s-dev "Get your own image badge on microbadger.com")
+[![Docker Pulls](https://img.shields.io/docker/pulls/alpin3/ulx3s-dev)](https://hub.docker.com/r/alpin3/ulx3s-dev "Docker hub")
+[![Travis (.org)](https://img.shields.io/travis/alpin3/ulx3s-dev)](https://travis-ci.org/alpin3/ulx3s-dev "Travis CI")
 
 # ulx3s-dev
 
