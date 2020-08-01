@@ -1,4 +1,4 @@
-FROM alpin3/ulx3s-core-dev
+FROM alpin3/ulx3s-core
 MAINTAINER kost - https://github.com/kost
 
 ENV ULX3SBASEDIR=/opt GHDLSRC=/opt/ghdl-git GHDLOPT=/opt/ghdl
@@ -6,7 +6,7 @@ ENV ULX3SBASEDIR=/opt GHDLSRC=/opt/ghdl-git GHDLOPT=/opt/ghdl
 # qt5-qtbase-dev
 RUN apk --update add git patch bash wget build-base python3-dev boost-python3 boost-static boost-dev libusb-dev libusb-compat-dev libftdi1-dev libtool automake autoconf make cmake pkgconf eigen-dev eigen bison flex gawk libffi-dev zlib-dev tcl-dev graphviz readline-dev py2-pip libgnat gcc-gnat libunwind-dev readline-dev ncurses-static && \
  rm -f /var/cache/apk/* && \
- echo "[i] Success [deps]"
+ echo "[i] Success [v7] [deps]"
 
 COPY root /
 
@@ -27,6 +27,7 @@ RUN apk add -f --allow-untrusted $ULX3SBASEDIR/apk/libgnat-8.3.0-r0.apk && \
  make -j$(nproc) &&\
  make install && \
  strip /usr/local/bin/ecp* && \
+ ln -sf /usr/local/lib64/trellis /usr/local/lib/trellis && \
  cd $ULX3SBASEDIR && \
  git clone https://github.com/YosysHQ/nextpnr.git && \
  cd nextpnr && \
@@ -36,24 +37,25 @@ RUN apk add -f --allow-untrusted $ULX3SBASEDIR/apk/libgnat-8.3.0-r0.apk && \
  make install && \
  strip /usr/local/bin/nextpnr-ecp5 && \
  cd $ULX3SBASEDIR && \
+ ln -sf /usr/lib/libgnat.a /usr/lib/libgnat-8.a && \
+ ln -sf /usr/lib/libgnarl.a /usr/lib/libgnarl-8.a && \
  git clone https://github.com/ghdl/ghdl.git $GHDLSRC && \
  cd $GHDLSRC && \
- cp -f $ULX3SBASEDIR/patches/Makefile.in . && \
+ patch -p1 < $ULX3SBASEDIR/patches/ghdl.patch && \
  ./configure --enable-libghdl --enable-synth --prefix=$GHDLOPT && \
- sed -i '/^LDFLAGS=/ s/$/ -lunwind/' Makefile && \
  make && \
+ rm ghdl_mcode && \
+ gnatmake -o ghdl_mcode -gnat12 -aI./src -aI./src/vhdl -aI./src/grt -aI./src/psl -aI./src/vhdl/translate -aI./src/ghdldrv -aI./src/ortho -aI./src/ortho/mcode -aI./src/synth -gnaty3befhkmr -gnatwa -gnatf -g -gnata -gnatwe -gnatw.A ghdl_jit.adb -bargs -E -largs memsegs_c.o chkstk.o jumps.o times.o grt-cstdio.o grt-cgnatrts.o grt-cvpi.o grt-cdynload.o fstapi.o lz4.o fastlz.o -lunwind  -lm -Wl,--version-script=/opt/ghdl-git/./src/grt/grt.ver -Wl,--allow-multiple-definition -static -s && \
  make libghdlsynth.a && \
  make install && \
- gnatbind -Llibghdl $GHDLSRC/pic/libghdl.ali -O > libghdl.files && \
- gnatbind -Llibghdl $GHDLSRC/pic/libghdl.ali -K -Z |sed -e '\@adalib/$@s/-L//' -e '\@adalib/@s@adalib/@adalib/libgnat.a@' -e '/-lgnat/d' > libghdl.link && \
- ar rc libghdl.a b~libghdl.o `cat libghdl.files` pic/grt-cstdio.o && \
- cp $GHDLSRC/libghdl.a $GHDLOPT/lib/ && \
- cp $GHDLSRC/libghdlsynth.a $GHDLSRC/ghdlsynth.link $GHDLOPT/lib/ && \
+ install -m 755 $GHDLOPT/bin/ghdl /usr/local/bin/ghdl && \
+ make libghdlsynth.a-install && \
  cd $ULX3SBASEDIR && \
- git clone https://github.com/tgingold/ghdlsynth-beta && \
+ git clone https://github.com/ghdl/ghdl-yosys-plugin && \
+ cd ghdl-yosys-plugin && \
  cd $ULX3SBASEDIR && \
  git clone https://github.com/YosysHQ/yosys.git && \
- cp -a /opt/ghdlsynth-beta/src /opt/yosys/frontends/ghdl && \
+ cp -a /opt/ghdl-yosys-plugin/src /opt/yosys/frontends/ghdl && \
  cd yosys && \
  patch -p1 < $ULX3SBASEDIR/patches/yosys.diff && \
  cp -a $ULX3SBASEDIR/patches/Makefile.conf . && \
@@ -61,11 +63,7 @@ RUN apk add -f --allow-untrusted $ULX3SBASEDIR/apk/libgnat-8.3.0-r0.apk && \
  make install && \
  strip /usr/local/bin/yosys && \
  cd $ULX3SBASEDIR && \
- pip3 install git+https://github.com/FPGAwars/apio@develop#egg=apio && \
- apio install scons && \
- apio install yosys && \
- apio install ecp5 && \
- echo "Success [build]"
+ echo "[i] Success: [build]"
 
 #VOLUME ["/fpga"]
 #WORKDIR /opt
